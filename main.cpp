@@ -157,7 +157,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			DispatchMessage(&msg);
 		}
 		else {
-			return 0;
+			
 		}
 	}
+	
+	return 0;
 }
