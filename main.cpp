@@ -1,13 +1,6 @@
 #include <Windows.h>
 #include <cstdint>
 
-// クライアント領域のサイズ
-const int32_t kClientWidth = 1280;
-const int32_t kCilentHeight = 720;
-
-// ウィンドウサイズを表す構造体にクライアント領域を入れる
-RECT wrc = { 0,0,kClientWidth,kCilentHeight };
-
 // ウィンドウプロシージャ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	// メッセージに応じてゲーム固有の処理を行う
@@ -41,6 +34,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// ウィンドウクラスを登録する
 	RegisterClass(&wc);
 
+	// クライアント領域のサイズ
+	const int32_t kClientWidth = 1280;
+	const int32_t kCilentHeight = 720;
+
+	// ウィンドウサイズを表す構造体にクライアント領域を入れる
+	RECT wrc = { 0,0,kClientWidth,kCilentHeight };
+
 	// クライアント領域を元に実際のサイズにwrcを変更してもらう
 	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
 
@@ -61,7 +61,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			DispatchMessage(&msg);
 		}
 		else {
-			return 0;
+
 		}
 	}
+
+	return 0;
 }
