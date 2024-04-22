@@ -171,20 +171,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
 		// 警告時に止まる
 		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
-		// 
+		// 抑制するメッセージのID
 		D3D12_MESSAGE_ID denyIds[] = {
-			// 
-			D3D12_MESSAGE_ID_RESOURCE_BARRIER_MATCHING_COMMAND_LIST_TYPE
-        };
-		// 
+			D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE
+		};
+		// 抑制するレベル
 		D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };
 		D3D12_INFO_QUEUE_FILTER filter{};
 		filter.DenyList.NumIDs = _countof(denyIds);
 		filter.DenyList.pIDList = denyIds;
 		filter.DenyList.NumSeverities = _countof(severities);
 		filter.DenyList.pSeverityList = severities;
-		// 
-		infoQueue->PushStorsgeFilter(&filter);
+		// 指定したメッセージの表示を抑制する
+		infoQueue->PushStorageFilter(&filter);
 		// 解放
 		infoQueue->Release();
 	}
