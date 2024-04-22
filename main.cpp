@@ -42,50 +42,6 @@ HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory));
 // 使用するアダプタ用の変数。最初にnullptrを入れておく
 IDXGIAdapter4* useAdapter = nullptr;
 
-ID3D12Device* device = nullptr;
-
-// 機能レベルとログ出力用の文字列
-D3D_FEATURE_LEVEL featureLevels[] = {
-	D3D_FEATURE_LEVEL_12_2, D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0
-};
-const char* featureLevelStrings[] = { "12.2","12.1","12.0" };
-
-// コマンドキューを生成する
-ID3D12CommandQueue* commandQueue = nullptr;
-D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
-
-// コマンドアロケータを生成する
-ID3D12CommandAllocator* commandAlocator = nullptr;
-
-// コマンドリストを生成する
-ID3D12GraphicsCommandList* commandList = nullptr;
-
-// スワップチェーンを生成する
-IDXGISwapChain4* swapChain = nullptr;
-DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-
-// ディスクリプタヒープの生成
-ID3D12DescriptorHeap* rtvDescriptorHeap = nullptr;
-D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc{};
-
-// SwapChainからResourceを引っ張ってくる
-ID3D12Resource* swapChainResources[2] = { nullptr };
-
-// RTVの設定
-D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-
-// ディスクリプタの先頭を取得する
-D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-
-// RTVを2つ作るのでディスクリプタを2つ用意
-D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
-
-// これから書き込むバックバッファのインデックスを取得
-UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
-
-// GPUにコマンドリストの実行を行わせる
-ID3D12CommandList* commandLists[] = { commandList };
-
 void Log(const std::string& message) {
 	OutputDebugStringA(message.c_str());
 }
@@ -143,6 +99,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	HWND hwnd = CreateWindow(
 		wc.lpszClassName, L"CG2", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, wrc.right - wrc.left, wrc.bottom - wrc.top, nullptr, nullptr, wc.hInstance, nullptr
 	);
+
+#ifdef _DEBUG
+	ID3D12Debug1* debugController = nullptr;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+	{
+		// デバッグレイヤーを有効化する
+		debugController->EnableDebugLayer();
+		// さらにGPU側でもチェックを行うようにする
+		debugController->SetEnableGPUBasedValidation(TRUE);
+	}
+#endif
 
 	// ウィンドウを表示
 	ShowWindow(hwnd, SW_SHOW);
