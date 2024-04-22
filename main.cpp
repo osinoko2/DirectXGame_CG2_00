@@ -5,9 +5,11 @@
 #include <dxgi1_6.h>
 #include <cassert>
 #include <format>
+#include <dxgidebug.h>
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
 
 // クライアント領域のサイズ
 const int32_t kClientWidth = 1280;
@@ -199,16 +201,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	assert(SUCCEEDED(hr));
 
 	// コマンドアロケータを生成する
-	ID3D12CommandAllocator* commandAlocator = nullptr;
+	ID3D12CommandAllocator* commandAllocater = nullptr;
 
-	hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAlocator));
+	hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocater));
 	// コマンドアロケータの生成がうまくいかなかったので起動できない
 	assert(SUCCEEDED(hr));
 
 	// コマンドリストを生成する
 	ID3D12GraphicsCommandList* commandList = nullptr;
 
-	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAlocator, nullptr, IID_PPV_ARGS(&commandList));
+	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocater, nullptr, IID_PPV_ARGS(&commandList));
 	// コマンドリストの生成がうまくいかなかったので起動できない
 	assert(SUCCEEDED(hr));
 
@@ -321,9 +323,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		WaitForSingleObject(fenceEvent, INFINITE);
 	}
 	// 
-	hr = commandAlocator->Reset();
+	hr = commandAllocater->Reset();
 	assert(SUCCEEDED(hr));
-	hr = commandList->Reset(commandAlocator, nullptr);
+	hr = commandList->Reset(commandAllocater, nullptr);
 	assert(SUCCEEDED(hr));
 
 	// ウィンドウのxボタンが押されるまでループ
@@ -333,6 +335,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			DispatchMessage(&msg);
 		}
 		else {
+			CloseHandle(fenceEvent);
+			fence->Release();
+			rtvDescriptorHeap->Release();
+			swapChainResources[0]->Release();
+			swapChainResources[1]->Release();
+			swapChain->Release();
+			commandList->Release();
+			commandAllocater->Release();
+			commandQueue->Release();
+			device->Release();
+			useAdapter->Release();
+			dxgiFactory->Release();
+#ifdef _DEBUG
+			debugController->Release();
+#endif 
+			CloseWindow(hwnd);
+			// リソースリークチェック
+			IDXGIDebug1* debug;
+			if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug))))
+			{
+				debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+				debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
+				debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
+				debug->Release();
+			}
 			return 0;
 		}
 	}
