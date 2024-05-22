@@ -51,6 +51,7 @@
     <None Include="externals\imgui\.editorconfig">
       <Filter>imgui</Filter>
     </None>
+    <None Include="Object3d.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="externals\imgui\imgui.h">
