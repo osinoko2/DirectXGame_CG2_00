@@ -317,6 +317,11 @@ ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
 
 ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
+float color[3] = { 1.0f, 1.0f, 1.0f };
+float scale[3] = { transform.scale.x, transform.scale.y, transform.scale.z };
+float rotate[3] = { transform.rotate.x, transform.rotate.y, transform.rotate.z };
+float translate[3] = { transform.translate.x, transform.translate.y, transform.translate.z };
+
 // Windowアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -719,9 +724,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 書き込むためのアドレスを取得
 	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
 
-	// 今回は白を書き込んでみる
-	*materialData = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-
 	// WVP用のリソースを作る。
 	ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
 	ID3D12Resource* transformationMatrixResource = CreateBufferResource(device, sizeof(Matrix4x4));
@@ -825,8 +827,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 
-			ImGui::ShowDemoWindow();
-			transform.rotate.y += 0.03f;
+			//ImGui::ShowDemoWindow();
+
+			ImGui::Begin("window");
+			ImGui::ColorEdit3("color", color, 0);
+			ImGui::DragFloat3("Translate", &transform.translate.x, 0.001f);
+			ImGui::DragFloat3("Rotate", &transform.rotate.x, 0.001f);
+			ImGui::DragFloat3("Scale", &transform.scale.x, 0.001f);
+			ImGui::End();
+
+			//transform.rotate.y += 0.03f;
 			Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 			Matrix4x4 cameraMatrix = MakeAffineMatrix(cameratransform.scale, cameratransform.rotate, cameratransform.translate);
 			Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -834,6 +844,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
 			*transformationMatrixData = worldViewProjectionMatrix;
 			*wvpData = worldMatrix;
+
+			// 今回は白を書き込んでみる
+			*materialData = Vector4(color[0], color[1], color[2], 1.0f);
 
 			// これから書き込むバックバッファのインデックスを取得
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
