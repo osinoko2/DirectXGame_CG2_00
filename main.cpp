@@ -1541,7 +1541,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
-
+	textureResource2->Release();
 	depthStencilResource->Release();
 	textureResource->Release();
 	transformationMatrixResourceSprite->Release();
