@@ -13,6 +13,8 @@
 #include "externals/DirectXTex/DirectXTex.h"
 #define _USE_MATH_DEFINES
 #include "math.h"
+#include <fstream>
+#include <sstream>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -23,7 +25,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 
 struct Vector2
 {
-	float u, v;
+	float x, y;
 };
 
 struct Vector3
@@ -36,10 +38,21 @@ struct Vector4
 	float x, y, z, w;
 };
 
+//struct Matrix3x3
+//{
+//	float m[3][3];
+//};
+
+struct Matrix4x4 {
+	float m[4][4];
+};
+
 struct Material
 {
 	Vector4 color;
 	int32_t enableLighting;
+	float padding[3];
+	Matrix4x4 uvTransform;
 };
 
 struct VertexData
@@ -47,10 +60,6 @@ struct VertexData
 	Vector4 position;
 	Vector2 texcoord;
 	Vector3 normal;
-};
-
-struct Matrix4x4 {
-	float m[4][4];
 };
 
 struct TransformationMatrix
@@ -71,6 +80,17 @@ struct DirectionalLight
 	Vector4 color; //!< ライトの色
 	Vector3 direction; //!< ライトの向き
 	float intensity; //!< 輝度
+};
+
+struct MaterialData
+{
+	std::string textureFilePath;
+};
+
+struct ModelData
+{
+	std::vector<VertexData> vertices;
+	MaterialData material;
 };
 
 Matrix4x4 MakeRotateXMatrix(float radian) {
@@ -308,6 +328,52 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 	a.m[3][3] = 1;
 	return a;
 }
+
+Matrix4x4 MakeScaleMatrix(Vector3 scale)
+{
+	Matrix4x4 a;
+	a.m[0][0] = scale.x;
+	a.m[0][1] = 0;
+	a.m[0][2] = 0;
+	a.m[0][3] = 0;
+	a.m[1][0] = 0;
+	a.m[1][1] = scale.y;
+	a.m[1][2] = 0;
+	a.m[1][3] = 0;
+	a.m[2][0] = 0;
+	a.m[2][1] = 0;
+	a.m[2][2] = scale.z;
+	a.m[2][3] = 0;
+	a.m[3][0] = 0;
+	a.m[3][1] = 0;
+	a.m[3][2] = 0;
+	a.m[3][3] = 1;
+	return a;
+}
+
+Matrix4x4 MakeTranslateMatrix(Vector3 translate)
+{
+	Matrix4x4 a;
+	a.m[0][0] = 1;
+	a.m[0][1] = 0;
+	a.m[0][2] = 0;
+	a.m[0][3] = 0;
+	a.m[1][0] = 0;
+	a.m[1][1] = 1;
+	a.m[1][2] = 0;
+	a.m[1][3] = 0;
+	a.m[2][0] = 0;
+	a.m[2][1] = 0;
+	a.m[2][2] = 1;
+	a.m[2][3] = 0;
+	a.m[3][0] = translate.x;
+	a.m[3][1] = translate.y;
+	a.m[3][2] = translate.z;
+	a.m[3][3] = 1;
+	return a;
+}
+
+ID3D12Device* device = nullptr;
 
 std::wstring ConvertString(const std::string& str) {
 	if (str.empty()) {
@@ -680,8 +746,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 適切なアダプタが見つからなかったので起動できない
 	assert(useAdapter != nullptr);
 
-	ID3D12Device* device = nullptr;
-
 	// 機能レベルとログ出力用の文字列
 	D3D_FEATURE_LEVEL featureLevels[] = {
 		D3D_FEATURE_LEVEL_12_2, D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0
@@ -1024,6 +1088,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	materialData->enableLighting = true;
 
+	materialData->uvTransform = MakeIdentity4x4();
+
 	// WVP用のリソースを作る。
 	ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(TransformationMatrix));
 
@@ -1083,6 +1149,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// 書き込むためのアドレスを取得
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
+
 
 	/*ID3D12Resource* indexResource = CreateBufferResource(device, sizeof(uint32_t) * vertexNum);
 
@@ -1238,6 +1305,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// SpriteはLightingしないのでfalseを設定する
 	materialDataSprite->enableLighting = false;
 
+	materialDataSprite->uvTransform = MakeIdentity4x4();
+
 	// Sprite用のTransformationMatrix用のリソースを作る。
 	ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device, sizeof(TransformationMatrix));
 
@@ -1252,6 +1321,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	transformationMatrixDataSprite->World = MakeIdentity4x4();
 
 	Transform transformSprite{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
+
+	Transform uvTransformSprite{
+		{1.0f, 1.0f, 1.0f},
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 0.0f},
+	};
 
 	// metaDataを基にSRVの設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -1343,8 +1418,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				directionalLightData->direction = Normalize(directionalLightData->direction);
 			}
 			ImGui::DragFloat("L Intensity", &directionalLightData->intensity, 0.01f);
+			ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
+			ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
 
-			transform.rotate.y += 0.03f;
+			//transform.rotate.y += 0.03f;
 			Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 			Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
 			Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -1362,6 +1440,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, viewProjectionMatrixSprite);
 			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
 			transformationMatrixDataSprite->World = worldMatrixSprite;
+
+			Matrix4x4 uvTransformMatrix = MakeScaleMatrix(uvTransformSprite.scale);
+			uvTransformMatrix = Multiply(uvTransformMatrix, MakeRotateZMatrix(uvTransformSprite.rotate.z));
+			uvTransformMatrix = Multiply(uvTransformMatrix, MakeTranslateMatrix(uvTransformSprite.translate));
+			materialDataSprite->uvTransform = uvTransformMatrix;
 
 			ImGui::ShowDemoWindow();
 
