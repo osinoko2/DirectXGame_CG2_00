@@ -1007,7 +1007,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// デフォルト値はとりあえず以下のようにしておく
 	directionalLightData->color = { 1.0f, 1.0f, 1.0f, 1.0f };
-	directionalLightData->direction = { 1.0f, 0.0f, 0.0f };
+	directionalLightData->direction = { 0.0f, -1.0f, 0.0f };
 	directionalLightData->intensity = 1.0f;
 
 	// マテリアル用のリソースを作る。
@@ -1298,7 +1298,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 			ImGui::Checkbox("useMonsterBall", &useMonsterBall);
-			ImGui::ColorEdit4("Light Color", &directionalLightData->color.x);
+			ImGui::ColorEdit4("L Color", &directionalLightData->color.x);
 			ImGui::DragFloat3("L Direction", &directionalLightData->direction.x, 0.01f);
 			if (ImGui::IsItemEdited())
 			{
