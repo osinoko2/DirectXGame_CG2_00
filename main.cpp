@@ -1583,6 +1583,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// 入力の更新
 			input->Update();
 
+			if (input->TriggerKey(DIK_0)) // 数字の0キーが押されていたら
+			{
+				OutputDebugStringA("Hit 0\n");
+			}
+
 			// これから書き込むバックバッファのインデックスを取得
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
