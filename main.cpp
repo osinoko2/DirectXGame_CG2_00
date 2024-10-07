@@ -15,6 +15,7 @@
 #include "math.h"
 #include <fstream>
 #include <sstream>
+#include "Input.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -869,6 +870,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	assert(device != nullptr);
 	Log("Complete create D3D12Device!!!\n");// 初期化完了のログをだす
 
+	// ポイント
+	Input* input = nullptr;
+
+	// 入力の初期化
+	input = new Input();
+	input->Intialize(wc.hInstance, hwnd);
+
 #ifdef _DEBUG
 	ID3D12InfoQueue* infoQueue = nullptr;
 	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
@@ -1705,6 +1713,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
+	delete input;
 	transformationMatrixResourceSprite->Release();
 	materialResourceSprite->Release();
 	vertexResourceSprite->Release();
