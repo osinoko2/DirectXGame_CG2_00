@@ -1658,10 +1658,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		assert(SUCCEEDED(hr));
 		hr = commandList->Reset(commandAllocator, nullptr);
 		assert(SUCCEEDED(hr));
-
-		// ウィンドウを表示
-		ShowWindow(winApp->GetHwnd(), SW_SHOW);
-
 	}
 
 	// ImGuiの終了処理。
