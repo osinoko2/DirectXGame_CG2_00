@@ -19,8 +19,10 @@ public: // メンバ関数
 
 	// getter
 	HWND GetHwnd() const { return hwnd; }
+	HINSTANCE GetHinstance() const { return wc.hInstance; }
 
-	HINSTANCE const GetHinstance() { return wc.hInstance; }
+	// 終了
+	void Finalize();
 
 public: // 定数
 	// クライアント領域のサイズ

@@ -3,6 +3,7 @@
 #include <wrl.h>
 #define DIRECTINPUT_VERSION 0x0800 // DirectInputのバージョン指定
 #include <dinput.h>
+#include "WinApp.h"
 
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -16,7 +17,7 @@ public:
 
 public: // メンバ関数
 	// 初期化
-	void Intialize(HINSTANCE hInstance, HWND hwnd);
+	void Intialize(WinApp* winApp);
 	// 更新
 	void Update();
 
@@ -43,5 +44,7 @@ private: // メンバ変数
 	BYTE key[256] = {};
 	// 前回の全キーの状態
 	BYTE keyPre[256] = {};
+	// WindowsAPI
+	WinApp* winApp_ = nullptr;
 };
 
