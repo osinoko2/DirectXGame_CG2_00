@@ -26,10 +26,26 @@ void WinApp::Intialize()
 	hwnd = CreateWindow(
 		wc.lpszClassName, L"CG2", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, wrc.right - wrc.left, wrc.bottom - wrc.top, nullptr, nullptr, wc.hInstance, nullptr
 	);
+
+	// ウィンドウを表示
+	ShowWindow(GetHwnd(), SW_SHOW);
 }
 
-void WinApp::Update()
+bool WinApp::ProcessMessage()
 {
+	MSG msg{};
+
+	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	if (msg.message == WM_QUIT)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 void WinApp::Finalize()
