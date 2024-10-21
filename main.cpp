@@ -7,7 +7,6 @@
 #include <cassert>
 #include <dxgidebug.h>
 #include <dxcapi.h>
-#include "externals/imgui/imgui.h"
 #include "externals/imgui/imgui_impl_dx12.h"
 #include "externals/imgui/imgui_impl_win32.h"
 #include "externals/DirectXTex/DirectXTex.h"
@@ -16,8 +15,7 @@
 #include <fstream>
 #include <sstream>
 #include "Input.h"
-
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#include "WinApp.h"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -872,10 +870,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ポインタ
 	Input* input = nullptr;
+	WinApp* winapp = nullptr;
 
 	// 入力の初期化
 	input = new Input();
 	input->Intialize(wc.hInstance, hwnd);
+
+	// WindowsAPIの初期化
+	winapp = new WinApp();
+	winapp->Intialize();
 
 #ifdef _DEBUG
 	ID3D12InfoQueue* infoQueue = nullptr;
@@ -1588,6 +1591,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				OutputDebugStringA("Hit 0\n");
 			}
 
+			// WindowsAPIの更新
+			winapp->Update();
+
 			// これから書き込むバックバッファのインデックスを取得
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
@@ -1721,6 +1727,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
+	delete winapp;
 	delete input;
 	transformationMatrixResourceSprite->Release();
 	materialResourceSprite->Release();
