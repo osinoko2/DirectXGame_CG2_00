@@ -14,12 +14,13 @@ public:
 public: // メンバ関数
 	// 初期化
 	void Intialize();
-	// 更新
-	void Update();
 
 	// getter
 	HWND GetHwnd() const { return hwnd; }
 	HINSTANCE GetHinstance() const { return wc.hInstance; }
+
+	// メッセージの処理
+	bool ProcessMessage();
 
 	// 終了
 	void Finalize();
