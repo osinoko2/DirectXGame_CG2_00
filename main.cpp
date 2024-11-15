@@ -1195,7 +1195,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	D3D12_RASTERIZER_DESC rasterizerDesc{};
 
 	// 裏面(時計回り)を表示しない
-	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+	rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
+	// rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
 
 	// 三角形の中を塗りつぶす
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
@@ -1617,7 +1618,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Transform cameraTransform{
 		{1.0f, 1.0f, 1.0f},
 		{std::numbers::pi_v<float> / 3.0f, std::numbers::pi_v<float>, 0.0f},
-		{0.0f, 23.0f, -15.0f}
+		{0.0f, 23.0f, 10.0f}
 	};
 
 	Particle particles[kNumMaxInstance];
@@ -1690,12 +1691,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 				float alpha = 1.0f - (particles[index].currentTime / particles[index].lifeTime);
 
-				Matrix4x4 worldMatrix = MakeAffineMatrix(particles[index].transform.scale, particles[index].transform.rotate, particles[index].transform.translate);
-			for (uint32_t index = 0; index < kNumInstance; ++index) {
-				Matrix4x4 scaleMatrix = MakeScaleMatrix(transforms[index].scale);
-				Matrix4x4 rotateMatrix = MakeRotateXMatrix(transforms[index].rotate.x) * MakeRotateYMatrix(transforms[index].rotate.y) * MakeRotateZMatrix(transforms[index].rotate.z);
-				Matrix4x4 translateMatrix = MakeTranslateMatrix(transforms[index].translate);
-				//Matrix4x4 worldMatrix = MakeAffineMatrix(transforms[index].scale, transforms[index].rotate, transforms[index].translate);
+				Matrix4x4 scaleMatrix = MakeScaleMatrix(particles[index].transform.scale);
+				Matrix4x4 rotateMatrix = MakeRotateXMatrix(particles[index].transform.rotate.x) * MakeRotateYMatrix(particles[index].transform.rotate.y) * MakeRotateZMatrix(particles[index].transform.rotate.z);
+				Matrix4x4 translateMatrix = MakeTranslateMatrix(particles[index].transform.translate);
+				//Matrix4x4 worldMatrix = MakeAffineMatrix(particles[index].transform.scale, particles[index].transform.rotate, particles[index].transform.translate);
 				Matrix4x4 worldMatrix = scaleMatrix * billboardMatrix * translateMatrix;
 				Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, viewProjectionMatrix);
 
