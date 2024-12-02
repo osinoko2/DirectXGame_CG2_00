@@ -10,6 +10,9 @@
 #include <dxcapi.h>
 #include <format>
 
+#include <chrono>
+#include <thread>
+
 #include "externals/imgui/imgui_impl_dx12.h"
 #include "externals/imgui/imgui_impl_win32.h"
 #include "externals/DirectXTex/DirectXTex.h"
@@ -235,6 +238,11 @@ private:
 	// TransitionBarrierの設定
 	D3D12_RESOURCE_BARRIER barrier{};
 
-
+	// FPS固定初期化
+	void InitializeFixFPS();
+	// FPS固定更新
+	void UpdateFixFPS();
+	// 記録時間
+	std::chrono::steady_clock::time_point reference_;
 };
 
