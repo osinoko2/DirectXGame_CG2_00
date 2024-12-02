@@ -16,6 +16,7 @@
 #include "Input.h"
 #include "WinApp.h"
 #include "DirectXBase.h"
+#include "D3DResourceLeakChecker.h"
 
 //#pragma comment(lib, "d3d12.lib")
 //#pragma comment(lib, "dxgi.lib")
@@ -474,6 +475,8 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 
 // Windowアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+	D3DResourceLeakChecker* LeakChecker = nullptr;
+
 	// ポインタ
 	Input* input = nullptr;
 	WinApp* winApp = nullptr;
@@ -1044,6 +1047,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	delete input;
 	delete winApp;
 	delete dxBase;
+	delete LeakChecker;
 
 	return 0;
 }
