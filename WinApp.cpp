@@ -1,5 +1,7 @@
 #include "WinApp.h"
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 void WinApp::Intialize()
 {
 	HRESULT hr = CoInitializeEx(0, COINIT_MULTITHREADED);
