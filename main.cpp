@@ -16,6 +16,8 @@
 #include "Input.h"
 #include "WinApp.h"
 #include "DirectXBase.h"
+#include "SpriteBase.h"
+#include "Sprite.h"
 
 //#pragma comment(lib, "d3d12.lib")
 //#pragma comment(lib, "dxgi.lib")
@@ -474,22 +476,25 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 
 // Windowアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-	// ポインタ
-	Input* input = nullptr;
 	WinApp* winApp = nullptr;
-	DirectXBase* dxBase = nullptr;
-
 	// WindowsAPIの初期化
 	winApp = new WinApp();
 	winApp->Intialize();
 
+	Input* input = nullptr;
 	// 入力の初期化
 	input = new Input();
 	input->Intialize(winApp);
 
+	DirectXBase* dxBase = nullptr;
 	// DirectXの初期化
 	dxBase = new DirectXBase();
 	dxBase->Intialize(winApp);
+
+	SpriteBase* spriteBase = nullptr;
+	// スプライト共通部の初期化
+	spriteBase = new SpriteBase();
+	spriteBase->Initialize(dxBase);
 
 	HRESULT hr;
 
@@ -857,6 +862,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	bool useMonsterBall = true;
 
+	Sprite* sprite = new Sprite();
+	sprite->Initialize(spriteBase);
+
 	// ウィンドウのxボタンが押されるまでループ
 
 	while (true) {
@@ -976,6 +984,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
+	delete sprite;
 	transformationMatrixResourceSprite->Release();
 	materialResourceSprite->Release();
 	vertexResourceSprite->Release();
@@ -1044,6 +1053,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	delete input;
 	delete winApp;
 	delete dxBase;
+	delete spriteBase;
 
 	return 0;
 }
