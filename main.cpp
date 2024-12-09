@@ -15,6 +15,11 @@
 #include "Matrix4x4.h"
 #include "MathFunction.h"
 
+Vector2 operator+(const Vector2& v1, const Vector2& v2)
+{
+	return MathFunction::Add(v1, v2);
+}
+
 //struct Material
 //{
 //	Vector4 color;
@@ -397,6 +402,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		wvpData->World = worldMatrix;
 
 		sprite->Update();
+
+		Vector2 position = sprite->GetPosition();
+		position = position + Vector2{ 0.1f, 0.1f };
+		sprite->SetPosition(position);
 		
 		//Matrix4x4 viewProjectionMatrixSprite = MathFunction::Multiply(viewMatrixSprite, projectionMatrixSprite);
 		//Matrix4x4 worldViewProjectionMatrixSprite = MathFunction::Multiply(worldMatrixSprite, viewProjectionMatrixSprite);

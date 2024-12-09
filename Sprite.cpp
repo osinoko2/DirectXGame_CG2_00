@@ -72,6 +72,7 @@ void Sprite::Update()
 	vertexData[indexData[5]].normal = { 0.0f, 0.0f, -1.0f };
 
 	Transform transform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
+	transform.translate = { position.x, position.y, 0.0f };
 	Matrix4x4 worldMatrix = MathFunction::MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 	Matrix4x4 viewMatrix = MathFunction::MakeIdentity4x4();
 	Matrix4x4 projectionMatrix = MathFunction::MakeOrthographicMatrix(0.0f, 0.0f, float(WinApp::kClientWidth), float(WinApp::kClientHeight), 0.0f, 100.0f);

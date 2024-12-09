@@ -49,8 +49,15 @@ public:
 	// 描画処理
 	void Draw();
 
+	// getter
+	const Vector2& GetPosition() const { return position; }
+
+	// setter
+	void SetPosition(const Vector2& position) { this->position = position; }
+
 private:
 	SpriteBase* spriteBase = nullptr;
+	Vector2 position = { 0.0f, 0.0f };
 
 	// バッファリソース
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;

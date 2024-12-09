@@ -1,4 +1,5 @@
 #pragma once
+#include "Vector2.h"
 #include "Vector3.h"
 #include "Matrix4x4.h"
 #define _USE_MATH_DEFINES
@@ -6,6 +7,8 @@
 #include <sstream>
 
 namespace MathFunction {
+	Vector2 Add(const Vector2& v1, const Vector2& v2);
+	
 	Vector3 Normalize(const Vector3& v);
 
 	Matrix4x4 MakeRotateXMatrix(float radian);

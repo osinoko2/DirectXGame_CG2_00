@@ -1,6 +1,14 @@
 #include "MathFunction.h"
 
 namespace MathFunction {
+	Vector2 Add(const Vector2& v1, const Vector2& v2)
+	{
+		Vector2 a;
+		a.x = v1.x + v2.x;
+		a.y = v1.y + v2.y;
+		return a;
+	}
+
 	Vector3 Normalize(const Vector3& v)
 	{
 		Vector3 a;
