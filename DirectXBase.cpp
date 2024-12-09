@@ -203,17 +203,15 @@ void DirectXBase::IntializeRenderTargetView()
 	// ディスクリプタの先頭を取得する
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
-	// まず1つ目を作る。1つ目は最初のところに作る場所をこちらで指定してあげる必要がある
-	rtvHandles[0] = rtvStartHandle;
-
-	// レンダーターゲットビューの生成
-	device->CreateRenderTargetView(swapChainResources[0].Get(), &rtvDesc, rtvHandles[0]);
-
-	// 2つ目のディスクリプタハンドルを得る(自力で)
-	rtvHandles[1].ptr = rtvHandles[0].ptr + device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-	// レンダーターゲットビューの生成
-	device->CreateRenderTargetView(swapChainResources[1].Get(), &rtvDesc, rtvHandles[1]);
+	for (uint32_t i = 0; i < 2; i++)
+	{
+		// まず1つ目を作る。1つ目は最初のところに作る場所をこちらで指定してあげる必要がある
+		rtvHandles[0] = rtvStartHandle;
+		// 2つ目のディスクリプタハンドルを得る(自力で)
+		rtvHandles[1].ptr = rtvHandles[0].ptr + device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		// レンダーターゲットビューの生成
+		device->CreateRenderTargetView(swapChainResources[i].Get(), &rtvDesc, rtvHandles[i]);
+	}
 
 }
 
