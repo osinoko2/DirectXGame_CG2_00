@@ -5,6 +5,8 @@
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "dxcompiler.lib")
 
+const  uint32_t DirectXBase::kMaxSRVCount = 512;
+
 void DirectXBase::Intialize(WinApp* winApp)
 {
 	// NULL検出
@@ -174,8 +176,8 @@ void DirectXBase::GenerateDescriptorHeap()
 	// RTV用のヒープでディスクリプタの数は2。
 	rtvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 3, false);
 
-	// SRV用のヒープでディスクリプタの数は128。
-	srvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
+	// SRV用のヒープでディスクリプタの数は定数。
+	srvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, kMaxSRVCount, true);
 
 	// DSV用のヒープでディスクリプタの数は1。
 	dsvDescriptorHeap = CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
@@ -507,7 +509,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXBase::CreateTextureResource(const 
 	return resource;
 }
 
-void DirectXBase::UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages){
+void DirectXBase::UploadTextureData(Microsoft::WRL::ComPtr<ID3D12Resource> texture, const DirectX::ScratchImage& mipImages){
 	// Meta情報を取得
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
 
@@ -527,23 +529,6 @@ void DirectXBase::UploadTextureData(ID3D12Resource* texture, const DirectX::Scra
 		);
 		assert(SUCCEEDED(hr));
 	}
-}
-
-DirectX::ScratchImage DirectXBase::LoadTexture(const std::string& filePath)
-{
-	// テクスチャファイルを読んでプログラムで扱える
-	DirectX::ScratchImage image{};
-	std::wstring filePathW = StringUtility::ConvertString(filePath);
-	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
-	assert(SUCCEEDED(hr));
-
-	// ミップマップの作成
-	DirectX::ScratchImage mipImages{};
-	hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
-	assert(SUCCEEDED(hr));
-
-	// ミップマップ付きのデータを返す
-	return mipImages;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE DirectXBase::GetSRVCPUDescriptorHandle(uint32_t index)

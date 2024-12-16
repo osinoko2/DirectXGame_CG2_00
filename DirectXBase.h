@@ -74,14 +74,7 @@ public: // メンバ関数
 	/// <summary>
 	/// テクスチャデータの転送
 	/// </summary>
-	void UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
-
-	/// <summary>
-	/// テクスチャファイルの読み込み
-	/// </summary>
-	/// <param name="filePath">テクスチャファイルのパス</param>
-	/// <returns>画像イメージデータ</returns>
-	static DirectX::ScratchImage LoadTexture(const std::string& filePath);
+	void UploadTextureData(Microsoft::WRL::ComPtr<ID3D12Resource> texture, const DirectX::ScratchImage& mipImages);
 
 	/// <summary>
 	/// デスクリプタヒープを生成
@@ -183,6 +176,9 @@ public: // メンバ関数
 	/// DSVの指定番号のGPUデスクリプタハンドルを取得する
 	/// </summary>
 	D3D12_GPU_DESCRIPTOR_HANDLE GetDSVGPUDescriptorHandle(uint32_t index);
+
+	// 最大SRV数（最大テクスチャ枚数）
+	static const uint32_t kMaxSRVCount;
 
 private:
 	

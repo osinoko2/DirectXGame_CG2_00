@@ -8,6 +8,7 @@
 #include "Matrix4x4.h"
 #include "MathFunction.h"
 #include <wrl.h>
+#include "TextureManager.h"
 
 class SpriteBase;
 
@@ -43,21 +44,36 @@ class Sprite
 {
 public:
 	// 初期化
-	void Initialize(SpriteBase* spBase);
+	void Initialize(SpriteBase* spBase, std::string textureFilePath);
 	// 更新処理
 	void Update();
 	// 描画処理
 	void Draw();
 
+	void CreateVertexData();
+
+	void CreateIndexData();
+
+	void CreateMaterialData();
+
+	void CreateTransformationMatrixData();
+
 	// getter
 	const Vector2& GetPosition() const { return position; }
+
+	const Vector2& GetSize() const { return size; }
 
 	// setter
 	void SetPosition(const Vector2& position) { this->position = position; }
 
+	void SetSize(const Vector2& size) { this->size = size; }
+
 private:
 	SpriteBase* spriteBase = nullptr;
 	Vector2 position = { 0.0f, 0.0f };
+	float rotation = 0.0f;
+	Vector2 size = { 640.0f,360.0f };
+	uint32_t textureIndex = 0;
 
 	// バッファリソース
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
