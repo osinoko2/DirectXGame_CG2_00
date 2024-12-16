@@ -15,6 +15,8 @@
 #include "Matrix4x4.h"
 #include "MathFunction.h"
 #include "TextureManager.h"
+#include "Object3d.h"
+#include "Object3dCommon.h"
 
 Vector2 operator+(const Vector2& v1, const Vector2& v2)
 {
@@ -192,6 +194,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	spriteBase = new SpriteBase();
 	spriteBase->Initialize(dxBase);
 
+	Object3dCommon* object3dCommon = nullptr;
+	// 3Dオブジェクト共通部の初期化
+	object3dCommon = new Object3dCommon();
+	object3dCommon->Initialize();
+
+	Object3d* object3d = new Object3d();
+	object3d->Initialize();
+
 	HRESULT hr;
 
 	
@@ -305,34 +315,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	hr = dxBase->GetDevice()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	assert(SUCCEEDED(hr));
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
-
-	
 
 	Transform uvTransformSprite{
 		{1.0f, 1.0f, 1.0f},
@@ -471,7 +453,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
-	delete sprite;
 	vertexResource->Release();
 	wvpResource->Release();
 	materialResource->Release();
@@ -501,6 +482,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	delete winApp;
 	delete dxBase;
 	delete spriteBase;
+	delete sprite;
+	delete object3dCommon;
+	delete object3d;
 
 	return 0;
 }
