@@ -1043,6 +1043,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	materialData->enableLighting = true;
 
+	materialData->shininess = 70;
+
 	// WVP用のリソースを作る。
 	ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(TransformationMatrix));
 
