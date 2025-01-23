@@ -58,6 +58,7 @@ struct TransformationMatrix
 {
 	Matrix4x4 WVP;
 	Matrix4x4 World;
+	Matrix4x4 WorldInverseTranspose;
 };
 
 struct Transform
@@ -1057,6 +1058,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 単位行列を書き込んでおく
 	wvpData->WVP = MakeIdentity4x4();
 	wvpData->World = MakeIdentity4x4();
+	wvpData->WorldInverseTranspose = MakeIdentity4x4();
 
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
@@ -1326,6 +1328,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				directionalLightData->direction = Normalize(directionalLightData->direction);
 			}
 			ImGui::DragFloat("L Intensity", &directionalLightData->intensity, 0.01f);
+			ImGui::DragFloat3("SphereScale", &transform.scale.x, 0.01f);
 
 			transform.rotate.y += 0.03f;
 			Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
@@ -1336,6 +1339,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, viewProjectionMatrix);
 			wvpData->WVP = worldViewProjectionMatrix;
 			wvpData->World = worldMatrix;
+			wvpData->WorldInverseTranspose = Inverse(worldMatrix);
 
 			//// Sprite用のWorldViewProjectionMatrixを作る
 			//Matrix4x4 worldMatrixSprite = MakeAffineMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
