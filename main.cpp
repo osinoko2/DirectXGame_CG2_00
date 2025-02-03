@@ -17,6 +17,8 @@
 #include "TextureManager.h"
 #include "Object3d.h"
 #include "Object3dCommon.h"
+#include "Model.h"
+#include "ModelCommon.h"
 
 Vector2 operator+(const Vector2& v1, const Vector2& v2)
 {
@@ -53,8 +55,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	object3dCommon = new Object3dCommon();
 	object3dCommon->Initialize(dxBase);
 
+	ModelCommon* modelCommon = nullptr;
+	// モデル共通部の初期化
+	modelCommon = new ModelCommon();
+	modelCommon->Initialize(dxBase);
+
+	Model* model = new Model();
+	model->Initialize(modelCommon);
+
 	Object3d* object3d = new Object3d();
 	object3d->Initialize(object3dCommon);
+	object3d->SetModel(model);
 
 	//HRESULT hr;
 	
@@ -101,16 +112,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//hr = dxBase->GetDevice()->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 	//assert(SUCCEEDED(hr));
 
-	/*Transform uvTransformSprite{
-		{1.0f, 1.0f, 1.0f},
-		{0.0f, 0.0f, 0.0f},
-		{0.0f, 0.0f, 0.0f},
-	};
-
-	Transform transform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} };
-
-	Transform cameraTransform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -15.0f} };*/
-
 	// ウィンドウのxボタンが押されるまでループ
 
 	while (true) {
@@ -142,26 +143,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
 		ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);*/
 
-		//transform.rotate.y += 0.03f;
-		/*Matrix4x4 worldMatrix = MathFunction::MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
-		Matrix4x4 cameraMatrix = MathFunction::MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
-		Matrix4x4 viewMatrix = MathFunction::Inverse(cameraMatrix);
-		Matrix4x4 projectionMatrix = MathFunction::MakePerspectiveFovMatrix(0.45f, float(WinApp::kClientWidth) / float(WinApp::kClientHeight), 0.1f, 100.0f);
-		Matrix4x4 viewProjectionMatrix = MathFunction::Multiply(viewMatrix, projectionMatrix);
-		Matrix4x4 worldViewProjectionMatrix = MathFunction::Multiply(worldMatrix, viewProjectionMatrix);*/
-		/*wvpData->WVP = worldViewProjectionMatrix;
-		wvpData->World = worldMatrix;*/
-
 		sprite->Update();
-		
-		//Matrix4x4 viewProjectionMatrixSprite = MathFunction::Multiply(viewMatrixSprite, projectionMatrixSprite);
-		//Matrix4x4 worldViewProjectionMatrixSprite = MathFunction::Multiply(worldMatrixSprite, viewProjectionMatrixSprite);
-		
-
-		//Matrix4x4 uvTransformMatrix = MathFunction::MakeScaleMatrix(uvTransformSprite.scale);
-		//uvTransformMatrix = MathFunction::Multiply(uvTransformMatrix, MathFunction::MakeRotateZMatrix(uvTransformSprite.rotate.z));
-		//uvTransformMatrix = MathFunction::Multiply(uvTransformMatrix, MathFunction::MakeTranslateMatrix(uvTransformSprite.translate));
-		//materialDataSprite->uvTransform = uvTransformMatrix;
 
 		ImGui::ShowDemoWindow();
 
@@ -207,8 +189,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			++i;
 		}*/
 
-		//dxBase->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
-
 		sprite->Draw();
 
 		// 実際のcommandListのImGuiの描画コマンドを積む
@@ -221,20 +201,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
-
-	/*vertexResource->Release();
-	wvpResource->Release();
-	materialResource->Release();
-	directionalLightResource->Release();*/
-	/*graphicsPipelineState->Release();
-	pixelShaderBlob->Release();
-	vertexShaderBlob->Release();*/
-	/*rootSignature->Release();
-	signatureBlob->Release();
-	if (errorBlob)
-	{
-		errorBlob->Release();
-	}*/
 	
 /*#ifdef _DEBUG
 	debugController->Release();
@@ -254,6 +220,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	delete sprite;
 	delete object3dCommon;
 	delete object3d;
+	delete modelCommon;
+	delete model;
 
 	return 0;
 }
