@@ -115,8 +115,6 @@ void DirectXBase::GenerateDevice()
 		filter.DenyList.pSeverityList = severities;
 		// 指定したメッセージの表示を抑制する
 		infoQueue->PushStorageFilter(&filter);
-		// 解放
-		infoQueue->Release();
 	}
 #endif
 
@@ -453,16 +451,14 @@ const Microsoft::WRL::ComPtr<IDxcBlob> DirectXBase::CompileShader(const std::wst
 	// 成功したログを出す
 	Logger::Log(StringUtility::ConvertString(std::format(L"Compile Succeeded, path:{},profile:{}\n", filePath, profile)));
 
-	// もう使わないリソースを解放
-	shaderSource->Release();
-	shaderResult->Release();
-
 	// 実行用のバイナリを返却
 	return shaderBlob;
 }
 
 Microsoft::WRL::ComPtr<ID3D12Resource> DirectXBase::CreateBufferResource(size_t sizeInBytes)
 {
+	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource;
+
 	// 頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uploadHeapProperties{};
 	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD; // uploadHeapを使う
@@ -484,9 +480,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXBase::CreateBufferResource(size_t 
 	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 	// 実際に頂点リソースを作る
-	ID3D12Resource* vertexResource = nullptr;
-	HRESULT hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
-	assert(SUCCEEDED(hr));
+	device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
 
 	return vertexResource;
 }
