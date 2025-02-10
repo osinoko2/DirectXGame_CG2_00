@@ -93,7 +93,7 @@ void DirectXBase::GenerateDevice()
 	assert(device != nullptr);
 
 #ifdef _DEBUG
-	ID3D12InfoQueue* infoQueue = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12InfoQueue> infoQueue = nullptr;
 	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
 	{
 		// ヤバイエラー時に止まる
@@ -119,6 +119,8 @@ void DirectXBase::GenerateDevice()
 		infoQueue->Release();
 	}
 #endif
+
+	device.As(&debugDevice);
 }
 
 void DirectXBase::IntializeCommand()
@@ -291,6 +293,16 @@ void DirectXBase::IntializeImGui()
 	);
 }
 
+void DirectXBase::Finalize()
+{
+	CloseHandle(fenceEvent);
+
+	// ImGuiの終了処理。
+	ImGui_ImplDX12_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+}
+
 void DirectXBase::PreDraw()
 {
 	// これから書き込むバックバッファのインデックスを取得
@@ -354,8 +366,8 @@ void DirectXBase::PostDraw()
 	assert(SUCCEEDED(hr));
 
 	// GPUにコマンドリストの実行を行わせる
-	ID3D12CommandList* commandLists[] = { commandList.Get() };
-	commandQueue->ExecuteCommandLists(1, commandLists);
+	Microsoft::WRL::ComPtr<ID3D12CommandList> commandLists[] = { commandList.Get() };
+	commandQueue->ExecuteCommandLists(1, commandLists->GetAddressOf());
 
 	// 
 	swapChain->Present(1, 0);
@@ -387,7 +399,7 @@ const Microsoft::WRL::ComPtr<IDxcBlob> DirectXBase::CompileShader(const std::wst
 	Logger::Log(StringUtility::ConvertString(std::format(L"Begin CompileShader, path:{}, profile:{}\n", filePath, profile)));
 
 	// hlslファイルを読む
-	IDxcBlobEncoding* shaderSource = nullptr;
+	Microsoft::WRL::ComPtr<IDxcBlobEncoding> shaderSource = nullptr;
 	HRESULT hr = dxcUtils->LoadFile(filePath.c_str(), nullptr, &shaderSource);
 
 	// 読めなかったら止める
@@ -410,7 +422,7 @@ const Microsoft::WRL::ComPtr<IDxcBlob> DirectXBase::CompileShader(const std::wst
 	};
 
 	// 実際にShaderをコンパイルする
-	IDxcResult* shaderResult = nullptr;
+	Microsoft::WRL::ComPtr<IDxcResult> shaderResult = nullptr;
 	hr = dxcCompiler->Compile(
 		&shaderSourceBuffer,
 		arguments,
@@ -423,7 +435,7 @@ const Microsoft::WRL::ComPtr<IDxcBlob> DirectXBase::CompileShader(const std::wst
 	assert(SUCCEEDED(hr));
 
 	// 警告・エラーが出たらログを出して止める
-	IDxcBlobUtf8* shaderError = nullptr;
+	Microsoft::WRL::ComPtr<IDxcBlobUtf8> shaderError = nullptr;
 	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
 	if (shaderError != nullptr && shaderError->GetStringLength() != 0)
 	{
@@ -434,7 +446,7 @@ const Microsoft::WRL::ComPtr<IDxcBlob> DirectXBase::CompileShader(const std::wst
 	}
 
 	// コンパイル結果から実行のバイナリ部分を取得
-	IDxcBlob* shaderBlob = nullptr;
+	Microsoft::WRL::ComPtr<IDxcBlob>shaderBlob = nullptr;
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	assert(SUCCEEDED(hr));
 
@@ -497,7 +509,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXBase::CreateTextureResource(const 
 	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
 
 	// Resourceの生成
-	ID3D12Resource* resource = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
 	HRESULT hr = device->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
@@ -509,7 +521,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> DirectXBase::CreateTextureResource(const 
 	return resource;
 }
 
-void DirectXBase::UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages){
+void DirectXBase::UploadTextureData(Microsoft::WRL::ComPtr<ID3D12Resource> texture, const DirectX::ScratchImage& mipImages){
 	// Meta情報を取得
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
 

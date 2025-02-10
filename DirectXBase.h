@@ -35,6 +35,8 @@ public: // メンバ関数
 	void GenerateDXCcompiler();
 	void IntializeImGui();
 
+	void Finalize();
+
 	// 描画前処理
 	void PreDraw();
 	// 描画後処理
@@ -42,6 +44,7 @@ public: // メンバ関数
 
 	// getter
 	ID3D12Device* GetDevice() const { return device.Get(); }
+	ID3D12DebugDevice* GetDebugDevice() const { return debugDevice.Get(); }
 	IDXGIFactory7* GetDxgiFactory() const { return dxgiFactory.Get(); }
 	ID3D12CommandAllocator* GetCommandAllocator() const { return commandAllocator.Get(); }
 	ID3D12GraphicsCommandList* GetCommandList() const { return commandList.Get(); }
@@ -54,8 +57,8 @@ public: // メンバ関数
 	ID3D12DescriptorHeap* GetRtvDescriptorHeap() { return rtvDescriptorHeap.Get(); }
 	ID3D12DescriptorHeap* GetSrvDescriptorHeap() { return srvDescriptorHeap.Get(); }
 	ID3D12DescriptorHeap* GetDsvDescriptorHeap() { return dsvDescriptorHeap.Get(); }
-	IDxcUtils* GetDxcUtils() const { return dxcUtils; }
-	IDxcCompiler3* GetDxcCompiler() const { return dxcCompiler; }
+	IDxcUtils* GetDxcUtils() const { return dxcUtils.Get(); }
+	IDxcCompiler3* GetDxcCompiler() const { return dxcCompiler.Get(); }
 	IDxcIncludeHandler* GetIncludeHandler() const { return includeHandler.Get(); }
 
 	// シェーダーのコンパイル
@@ -74,7 +77,7 @@ public: // メンバ関数
 	/// <summary>
 	/// テクスチャデータの転送
 	/// </summary>
-	void UploadTextureData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
+	void UploadTextureData(Microsoft::WRL::ComPtr<ID3D12Resource>texture, const DirectX::ScratchImage& mipImages);
 
 	/// <summary>
 	/// テクスチャファイルの読み込み
@@ -122,7 +125,7 @@ public: // メンバ関数
 		depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 		// Resourceの生成
-		Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Resource>resource = nullptr;
 		HRESULT hr = device->CreateCommittedResource(
 			&heapProperties,
 			D3D12_HEAP_FLAG_NONE,
@@ -190,6 +193,7 @@ private:
 	WinApp* winApp = nullptr;
 	// DirectX12デバイス
 	Microsoft::WRL::ComPtr<ID3D12Device> device;
+	Microsoft::WRL::ComPtr<ID3D12DebugDevice> debugDevice;
 	// DXGIファクトリ
 	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory;
 	// コマンドアロケータ
@@ -230,9 +234,9 @@ private:
 	// シーザー矩形
 	D3D12_RECT scissorRect{};
 	// DXCユーティリティ
-	IDxcUtils* dxcUtils = nullptr;
+	Microsoft::WRL::ComPtr <IDxcUtils> dxcUtils = nullptr;
 	// DXCコンパイラ
-	IDxcCompiler3* dxcCompiler = nullptr;
+	Microsoft::WRL::ComPtr<IDxcCompiler3> dxcCompiler = nullptr;
 	// インクルードハンドラ
 	Microsoft::WRL::ComPtr<IDxcIncludeHandler> includeHandler = nullptr;
 	// TransitionBarrierの設定

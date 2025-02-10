@@ -1,13 +1,7 @@
 #include <Windows.h>
 #include <string>
 #include <format>
-//#include <d3d12.h>
-//#include <dxgi1_6.h>
-//#include <cassert>
 #include <dxgidebug.h>
-//#include <dxcapi.h>
-//#include "externals/imgui/imgui_impl_dx12.h"
-//#include "externals/imgui/imgui_impl_win32.h"
 #include "externals/DirectXTex/DirectXTex.h"
 #define _USE_MATH_DEFINES
 #include "math.h"
@@ -17,11 +11,7 @@
 #include "WinApp.h"
 #include "DirectXBase.h"
 #include "D3DResourceLeakChecker.h"
-
-//#pragma comment(lib, "d3d12.lib")
-//#pragma comment(lib, "dxgi.lib")
-//#pragma comment(lib, "dxguid.lib")
-//#pragma comment(lib, "dxcompiler.lib")
+#include "wrl.h"
 
 struct Vector2
 {
@@ -538,8 +528,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
 
 	//シリアライズしてバイナリにする
-	ID3DBlob* signatureBlob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob>signatureBlob = nullptr;
+	Microsoft::WRL::ComPtr<ID3DBlob>errorBlob = nullptr;
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
 	if (FAILED(hr))
 	{
@@ -548,7 +538,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 
 	// バイナリを元に生成
-	ID3D12RootSignature* rootSignature = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature>rootSignature = nullptr;
 	hr = dxBase->GetDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 	assert(SUCCEEDED(hr));
 
@@ -558,13 +548,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// Textureを読んで転送する
 	DirectX::ScratchImage mipImages = dxBase->LoadTexture("resources/uvChecker.png");
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
-	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource = dxBase->CreateTextureResource(metadata);
+	Microsoft::WRL::ComPtr<ID3D12Resource>textureResource = dxBase->CreateTextureResource(metadata);
 	dxBase->UploadTextureData(textureResource.Get(), mipImages);
 
 	// 2枚目のTextureを読んで転送する
 	DirectX::ScratchImage mipImages2 = DirectXBase::LoadTexture(/*"resources/monsterBall.png"*/modelData.material.textureFilePath);
 	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
-	Microsoft::WRL::ComPtr<ID3D12Resource> textureResource2 = dxBase->CreateTextureResource(metadata2);
+	Microsoft::WRL::ComPtr<ID3D12Resource>textureResource2 = dxBase->CreateTextureResource(metadata2);
 	dxBase->UploadTextureData(textureResource2.Get(), mipImages2);
 
 	// InputLayout
@@ -601,10 +591,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
 	// Shaderをコンパイルする
-	Microsoft::WRL::ComPtr<IDxcBlob> vertexShaderBlob = dxBase->CompileShader(L"resources/shaders/Object3d.VS.hlsl", L"vs_6_0");
+	Microsoft::WRL::ComPtr<IDxcBlob>vertexShaderBlob = dxBase->CompileShader(L"resources/shaders/Object3d.VS.hlsl", L"vs_6_0");
 	assert(vertexShaderBlob != nullptr);
 
-	Microsoft::WRL::ComPtr<IDxcBlob> pixelShaderBlob = dxBase->CompileShader(L"resources/shaders/Object3d.PS.hlsl", L"ps_6_0");
+	Microsoft::WRL::ComPtr<IDxcBlob>pixelShaderBlob = dxBase->CompileShader(L"resources/shaders/Object3d.PS.hlsl", L"ps_6_0");
 	assert(pixelShaderBlob != nullptr);
 
 	// DepthStencilStateの設定
@@ -620,7 +610,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
-	graphicsPipelineStateDesc.pRootSignature = rootSignature; // RootSignature
+	graphicsPipelineStateDesc.pRootSignature = rootSignature.Get(); // RootSignature
 	graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;  // InputLayout
 	graphicsPipelineStateDesc.VS = { vertexShaderBlob->GetBufferPointer(),vertexShaderBlob->GetBufferSize() }; // VertexShader
 	graphicsPipelineStateDesc.PS = { pixelShaderBlob->GetBufferPointer(),pixelShaderBlob->GetBufferSize() };   // PixelShader
@@ -643,11 +633,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	// 実際に生成
-	ID3D12PipelineState* graphicsPipelineState = nullptr;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState>graphicsPipelineState = nullptr;
 	hr = dxBase->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState));
 	assert(SUCCEEDED(hr));
 
-	Microsoft::WRL::ComPtr<ID3D12Resource> directionalLightResource = dxBase->CreateBufferResource(sizeof(DirectionalLight));
+	Microsoft::WRL::ComPtr<ID3D12Resource>directionalLightResource = dxBase->CreateBufferResource(sizeof(DirectionalLight));
 
 	DirectionalLight* directionalLightData = nullptr;
 
@@ -659,7 +649,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	directionalLightData->intensity = 1.0f;
 
 	// マテリアル用のリソースを作る。
-	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource = dxBase->CreateBufferResource(sizeof(Material));
+	Microsoft::WRL::ComPtr<ID3D12Resource>materialResource = dxBase->CreateBufferResource(sizeof(Material));
 
 	// マテリアルにデータを書き込む
 	Material* materialData = nullptr;
@@ -675,7 +665,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	materialData->uvTransform = MakeIdentity4x4();
 
 	// WVP用のリソースを作る。
-	Microsoft::WRL::ComPtr<ID3D12Resource> wvpResource = dxBase->CreateBufferResource(sizeof(const TransformationMatrix));
+	Microsoft::WRL::ComPtr<ID3D12Resource>wvpResource = dxBase->CreateBufferResource(sizeof(const TransformationMatrix));
 
 	// データを書き込む
 	TransformationMatrix* wvpData = nullptr;
@@ -710,7 +700,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	const uint32_t kSubdivision = 16;
 
 	// 頂点リソースを作る
-	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResource = dxBase->CreateBufferResource(sizeof(VertexData) * modelData.vertices.size());
+	Microsoft::WRL::ComPtr<ID3D12Resource>vertexResource = dxBase->CreateBufferResource(sizeof(VertexData) * modelData.vertices.size());
 	// 頂点バッファビューを作成する
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();// リソースの先頭のアドレスから使う
@@ -727,7 +717,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	
 
-	Microsoft::WRL::ComPtr<ID3D12Resource> indexResourceSprite = dxBase->CreateBufferResource(sizeof(uint32_t) * 6);
+	Microsoft::WRL::ComPtr<ID3D12Resource>indexResourceSprite = dxBase->CreateBufferResource(sizeof(uint32_t) * 6);
 
 	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite{};
 
@@ -747,7 +737,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	indexDataSprite[3] = 1; indexDataSprite[4] = 3; indexDataSprite[5] = 2;
 
 	// Sprite用の頂点リソースを作る
-	Microsoft::WRL::ComPtr<ID3D12Resource> vertexResourceSprite = dxBase->CreateBufferResource(sizeof(VertexData) * 6);
+	Microsoft::WRL::ComPtr<ID3D12Resource>vertexResourceSprite = dxBase->CreateBufferResource(sizeof(VertexData) * 6);
 
 	// 頂点バッファビューを作成する
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
@@ -787,7 +777,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexDataSprite[indexDataSprite[5]].normal = { 0.0f, 0.0f, -1.0f };
 
 	// Sprite用のマテリアルリソースを作る。
-	Microsoft::WRL::ComPtr<ID3D12Resource> materialResourceSprite = dxBase->CreateBufferResource(sizeof(Material));
+	Microsoft::WRL::ComPtr<ID3D12Resource>materialResourceSprite = dxBase->CreateBufferResource(sizeof(Material));
 
 	// マテリアルにデータを書き込む
 	Material* materialDataSprite = nullptr;
@@ -804,7 +794,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	materialDataSprite->uvTransform = MakeIdentity4x4();
 
 	// Sprite用のTransformationMatrix用のリソースを作る。
-	Microsoft::WRL::ComPtr<ID3D12Resource> transformationMatrixResourceSprite = dxBase->CreateBufferResource(sizeof(TransformationMatrix));
+	Microsoft::WRL::ComPtr<ID3D12Resource>transformationMatrixResourceSprite = dxBase->CreateBufferResource(sizeof(TransformationMatrix));
 
 	// データを書き込む
 	TransformationMatrix* transformationMatrixDataSprite = nullptr;
@@ -859,6 +849,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Transform cameraTransform{ {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -15.0f} };
 
 	bool useMonsterBall = true;
+
+	/*materialResourceSprite.Get()->SetName(L"VertexResource");
+
+	dxBase->GetDebugDevice()->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL | D3D12_RLDO_IGNORE_INTERNAL);*/
 
 	// ウィンドウのxボタンが押されるまでループ
 
@@ -931,8 +925,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		dxBase->PreDraw();
 
 		// ParaSignatureを設定。PSOに設定してるけど別途設定が必要
-		dxBase->GetCommandList()->SetGraphicsRootSignature(rootSignature);
-		dxBase->GetCommandList()->SetPipelineState(graphicsPipelineState);  // PSOを設定
+		dxBase->GetCommandList()->SetGraphicsRootSignature(rootSignature.Get());
+		dxBase->GetCommandList()->SetPipelineState(graphicsPipelineState.Get());  // PSOを設定
 		dxBase->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView);  // VBVを設定
 
 		// 形状を設定。PSOに設定しているものとはまた別。同じものを設定すると考えておけばいい
@@ -974,79 +968,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		dxBase->PostDraw();
 	}
 
-	// ImGuiの終了処理。
-	ImGui_ImplDX12_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
-
-	transformationMatrixResourceSprite->Release();
-	materialResourceSprite->Release();
-	vertexResourceSprite->Release();
-	indexResourceSprite->Release();
-	vertexResource->Release();
-	wvpResource->Release();
-	materialResource->Release();
-	directionalLightResource->Release();
-	graphicsPipelineState->Release();
-	pixelShaderBlob->Release();
-	vertexShaderBlob->Release();
-	textureResource2->Release();
-	textureResource->Release();
-	rootSignature->Release();
-	signatureBlob->Release();
-	if (errorBlob)
-	{
-		errorBlob->Release();
-	}
-	/*dxcCompiler->Release();
-	dxcUtils->Release();
-	includeHandler->Release();
-	indexResourceSprite->Release();
-	directionalLightResource->Release();
-	materialResourceSprite->Release();
-	textureResource2->Release();
-	depthStencilResource->Release();
-	textureResource->Release();
-	transformationMatrixResourceSprite->Release();
-	wvpResource->Release();
-	materialResource->Release();
-	vertexResourceSprite->Release();
-	vertexResource->Release();
-	graphicsPipelineState->Release();
-	signatureBlob->Release();
-	if (errorBlob)
-	{
-		errorBlob->Release();
-	}
-	rootSignature->Release();
-	pixelShaderBlob->Release();
-	vertexShaderBlob->Release();
-	CloseHandle(fenceEvent);
-	fence->Release();
-	dsvDescriptorHeap->Release();
-	srvDescriptorHeap->Release();
-	rtvDescriptorHeap->Release();
-	swapChainResources[0]->Release();
-	swapChainResources[1]->Release();
-	swapChain->Release();
-	commandList->Release();
-	commandAllocator->Release();
-	commandQueue->Release();
-	device->Release();
-	useAdapter->Release();
-	dxgiFactory->Release();*/
-/*#ifdef _DEBUG
-	debugController->Release();
-#endif*/ 
-	
-
 	// WindowsAPIの終了処理
+	dxBase->Finalize();
 	winApp->Finalize();
 
 	// WindowsAPI解放
-	delete input;
-	delete winApp;
 	delete dxBase;
+	delete winApp;
+	delete input;
 	delete LeakChecker;
 
 	return 0;
