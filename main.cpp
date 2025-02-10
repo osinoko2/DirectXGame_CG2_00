@@ -465,7 +465,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 
 // Windowアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-	D3DResourceLeakChecker* LeakChecker = nullptr;
+	D3DResourceLeakChecker LeakChecker;
 
 	// ポインタ
 	Input* input = nullptr;
@@ -963,7 +963,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		dxBase->PostDraw();
 	}
 
-	LeakChecker->~D3DResourceLeakChecker();
 	delete input;
 
 	// WindowsAPIの終了処理
