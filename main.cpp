@@ -525,14 +525,38 @@ ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes)
 
 DirectX::ScratchImage LoadTexture(const std::string& filePath)
 {
-	// テクスチャファイルを読んでプログラムで扱える
+	size_t pos1;
+	std::wstring fileExt_;
+	std::wstring exceptExt;
 	DirectX::ScratchImage image{};
 	std::wstring filePathW = ConvertString(filePath);
-	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
-	assert(SUCCEEDED(hr));
+
+	// 区切り文字'.'が出てくる一番最後の部分を検索
+	pos1 = filePathW.rfind('.');
+	// 検索がヒットしたら
+	if (pos1 != std::wstring::npos) {
+		// 区切り文字の後ろをファイル拡張子として保存
+		fileExt_ = filePathW.substr(pos1 + 1, filePathW.size() - pos1 - 1);
+	}
+
+	// テクスチャファイルを読んでプログラムで扱える
+	/*HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+	assert(SUCCEEDED(hr));*/
 
 	// ミップマップの作成
 	DirectX::ScratchImage mipImages{};
+	DirectX::TexMetadata metadata{};
+	HRESULT hr;
+
+	if (fileExt_ == L"dds"){
+		// DDSテクスチャのロード
+		hr = LoadFromDDSFile(filePathW.c_str(), DirectX::DDS_FLAGS_NONE, &metadata, image);
+	} else
+	{
+		// WICテクスチャのロード
+		hr = LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_NONE, &metadata, image);
+	}assert(SUCCEEDED(hr));
+
 	hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
 	assert(SUCCEEDED(hr));
 
@@ -1075,7 +1099,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ModelData modelData = LoadObjFile("resources", "plane.obj");
 
 	// Textureを読んで転送する
-	DirectX::ScratchImage mipImages = LoadTexture("resources/uvChecker.png");
+	DirectX::ScratchImage mipImages = LoadTexture("resources/uvChecker.dds");
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
 	ID3D12Resource* textureResource = CreateTextureResource(device, metadata);
 	UploadTextureData(textureResource, mipImages);
