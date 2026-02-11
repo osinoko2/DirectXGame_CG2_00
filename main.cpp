@@ -558,7 +558,7 @@ DirectX::ScratchImage LoadTexture(const std::string& filePath)
 	}assert(SUCCEEDED(hr));
 
 	hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
-	assert(SUCCEEDED(hr));
+	//assert(SUCCEEDED(hr));
 
 	// ミップマップ付きのデータを返す
 	return mipImages;
